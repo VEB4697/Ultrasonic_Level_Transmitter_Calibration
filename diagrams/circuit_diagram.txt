@@ -1,0 +1,100 @@
+===================================================================================
+        ULTRASONIC LEVEL TRANSMITTER SYSTEM — HARDWARE SCHEMATIC & PINOUT
+===================================================================================
+Course: B.Tech Instrumentation & Control Engineering (ICE) — Semester 3 Project
+
+1. ASCII CIRCUIT DIAGRAM
+========================
+
+  +-------------------------------------------------------------------------------+
+  |                                POWER SUPPLY                                   |
+  |     +5V DC Regulated Power Supply       +24V DC Industrial Loop Supply        |
+  +-----------------------+----------------------------------+--------------------+
+                          |                                  |
+                          |                                  |
+            +-------------+-------------+                    |
+            |     ARDUINO UNO / NANO    |                    |
+            |                           |                    |
+            |  [5V]           [GND]     |                    |
+            +---+---------------+-------+                    |
+                |               |                            |
+  +-------------+---------------+-----------------+          |
+  |  ULTRASONIC SENSOR (HC-SR04 / JSN-SR04T)      |          |
+  |  VCC  --------------> 5V Rail                 |          |
+  |  GND  --------------> GND Rail                |          |
+  |  TRIG --------------> Arduino Pin 9 (D9)      |          |
+  |  ECHO --------------> Arduino Pin 8 (D8)      |          |
+  +-----------------------------------------------+          |
+                                                             |
+  +-----------------------------------------------+          |
+  |  LCD DISPLAY 16x2 (I2C BACKPACK PCF8574)      |          |
+  |  VCC  --------------> 5V Rail                 |          |
+  |  GND  --------------> GND Rail                |          |
+  |  SDA  --------------> Arduino Pin A4 (SDA)    |          |
+  |  SCL  --------------> Arduino Pin A5 (SCL)    |          |
+  +-----------------------------------------------+          |
+                                                             |
+  +----------------------------------------------------------+--------------------+
+  |  PWM-TO-4-20mA INDUSTRIAL TRANSMITTER SIGNAL CONDITIONER                       |
+  |                                                                               |
+  |  Arduino PWM Pin 3 ---> R1 (10k) ---+---> Non-Inverting (+)                   |
+  |                                     |     LM358 Op-Amp Pin 3                  |
+  |                                   C1 (10uF)                                   |
+  |                                     |                                         |
+  |                                    GND                                        |
+  |                                                                               |
+  |  LM358 Pin 1 (Out) ---> R2 (1k) ---> Base of BC547 NPN Transistor           |
+  |                                       Collector ---> 24V Loop Power (+)      |
+  |                                       Emitter   ---> Inverting (-) LM358 &   |
+  |                                                      R_sense (250 ohm 0.1%)   |
+  |                                                      |                        |
+  |                                                     GND                       |
+  |                                                                               |
+  |  Transmitter Output Terminals:                                                |
+  |     - 1.0V to 5.0V Voltage Output Across R_sense                              |
+  |     - 4.0mA to 20.0mA Current Loop Output (Simulated/Industrial Receiver)     |
+  +-------------------------------------------------------------------------------+
+
+
+2. PINOUT & WIRING MATRIX TABLE
+===============================
+
++-----------------------+---------------------+-------------------+------------------------------------------+
+| Source Component      | Pin Label           | Arduino / Circuit | Function / Signal Description            |
++-----------------------+---------------------+-------------------+------------------------------------------+
+| HC-SR04 / JSN-SR04T   | VCC                 | 5V                | +5V DC Sensor Power                      |
+|                       | GND                 | GND               | Common Ground                            |
+|                       | TRIG                | Digital Pin 9     | 10us Ultrasonic Pulse Trigger            |
+|                       | ECHO                | Digital Pin 8     | Echo Time-of-Flight Return Pulse         |
++-----------------------+---------------------+-------------------+------------------------------------------+
+| LCD 16x2 (I2C)        | VCC                 | 5V                | +5V DC Backlight & Logic Power           |
+|                       | GND                 | GND               | Common Ground                            |
+|                       | SDA                 | Analog Pin A4     | I2C Data Line (Address 0x27 or 0x3F)     |
+|                       | SCL                 | Analog Pin A5     | I2C Clock Line                           |
++-----------------------+---------------------+-------------------+------------------------------------------+
+| PWM-to-4-20mA Module  | PWM IN              | Digital Pin 3     | 490 Hz Timer PWM Signal (0-100% duty)    |
+|                       | GND                 | GND               | Common Signal Ground                     |
+|                       | LOOP + (24V)        | +24V Supply       | Industrial 24V DC Loop Current Supply    |
+|                       | LOOP - (Output)     | Current Loop Output 4-20 mA Output to PLC / Receiver Indicator |
++-----------------------+---------------------+-------------------+------------------------------------------+
+| LM35 (Optional Temp)  | VOUT                | Analog Pin A0     | Temperature Compensation (10 mV / deg C) |
++-----------------------+---------------------+-------------------+------------------------------------------+
+
+
+3. HARDWARE WORKING PRINCIPLE & SIGNAL PATH
+===========================================
+1. Ultrasonic Measurement:
+   Arduino sends a 10 microsecond HIGH pulse to HC-SR04 TRIG pin. The sensor emits an 8-cycle 40 kHz 
+   ultrasonic burst. The ECHO pin goes HIGH for a duration proportional to the distance traveled.
+   Distance d = (Time * v_sound) / 2.
+   Liquid Level L = Vessel_Height (100cm) - d.
+
+2. Software Calibration:
+   The raw measured level is passed through a moving average noise filter and transformed via the calibrated 
+   Gaussian linear equation: V_out = (0.03964 * Level) + 1.02182.
+
+3. Industrial Transmitter Signal Conditioning:
+   Arduino outputs a PWM duty cycle on Pin 3 corresponding to V_out. A 2nd order RC low-pass filter converts 
+   PWM to a smooth DC voltage. An LM358 operational amplifier in a constant current feedback loop drives a 
+   transistor to generate a standard 4 to 20 mA industrial current loop.
+===================================================================================

@@ -1,0 +1,109 @@
+===================================================================================
+     ULTRASONIC LEVEL TRANSMITTER CALIBRATION — VIVA & PRESENTATION OUTLINE
+===================================================================================
+Course: B.Tech Instrumentation & Control Engineering (ICE) — Semester 3 Project
+Topic: Calibration and Curve Fitting of Ultrasonic Level Transmitter using Gaussian Elimination
+
+-----------------------------------------------------------------------------------
+SLIDE 1: Title & Project Team
+-----------------------------------------------------------------------------------
+- Project Title: Ultrasonic Level Transmitter Calibration System using Gaussian Elimination
+- Team Members: B.Tech ICE S.Y. Students (2026-27)
+- Department: Department of Instrumentation & Control Engineering
+- Academic Supervisor / Guide: Project Coordinator & Faculty In-Charge
+
+-----------------------------------------------------------------------------------
+SLIDE 2: Objectives & Need for Calibration
+-----------------------------------------------------------------------------------
+- Project Objectives:
+  1. Build an ultrasonic non-contact liquid level transmitter system.
+  2. Implement Gaussian Elimination least-squares curve fitting for calibration.
+  3. Evaluate static performance characteristics (Linearity Error, Hysteresis, Zero & Span Error).
+  4. Generate standard 1-5 V and 4-20 mA industrial transmitter signals.
+- Why Calibration is Critical:
+  - Ultrasonic transducers suffer from temperature drift, mounting reflections, and sensor non-linearities.
+  - Calibration ensures compliance with ISA / IEC 60770 industrial transmitter standards.
+
+-----------------------------------------------------------------------------------
+SLIDE 3: Working Principle of Ultrasonic Level Measurement
+-----------------------------------------------------------------------------------
+- Time-of-Flight (ToF) Equation:
+  Distance d = (v_sound * t) / 2
+- Speed of Sound Temperature Compensation:
+  v_sound = 331.3 + 0.606 * T (m/s)
+- Liquid Level Formula in Vessel of Height H:
+  Level L = H - d
+
+-----------------------------------------------------------------------------------
+SLIDE 4: Mathematical Modeling & Gaussian Elimination Curve Fitting
+-----------------------------------------------------------------------------------
+- Target Calibration Model:
+  V_out = m * Level + c
+- Normal Equations Matrix System [A][X] = [B]:
+  [ sum(x_i^2)   sum(x_i) ] [ m ] = [ sum(x_i * y_i) ]
+  [ sum(x_i)     N        ] [ c ]   [ sum(y_i)       ]
+- Gaussian Elimination Steps:
+  1. Construct Augmented Matrix [A|B].
+  2. Perform Forward Elimination with Partial Pivoting to form Upper Triangular Matrix.
+  3. Perform Back Substitution to compute optimal slope m and offset c.
+
+-----------------------------------------------------------------------------------
+SLIDE 5: Hardware & Signal Conditioning Architecture
+-----------------------------------------------------------------------------------
+- Hardware Components:
+  - Microcontroller: Arduino Uno / Nano (ATmega328P)
+  - Sensor: HC-SR04 / Waterproof JSN-SR04T (40 kHz Transducer)
+  - Display: 16x2 LCD via I2C Backpack (PCF8574)
+  - Signal Conditioner: PWM -> RC Filter -> Op-Amp LM358 -> Transistor BC547 -> 4-20 mA Current Loop
+- Pin Connections & Operational Flow (Refer to Circuit Diagram).
+
+-----------------------------------------------------------------------------------
+SLIDE 6: Experimental Calibration Results & Error Analysis
+-----------------------------------------------------------------------------------
+- Summary Table of Results:
+  - Calibrated Linear Model : V = 0.03964 * Level + 1.02182 (V)
+  - Sensitivity            : 0.03964 V/cm (0.15856 mA/cm)
+  - Zero Error             : +0.0350 V (+0.88% FSR)
+  - Span Error             : -0.0100 V (-0.25%)
+  - Max Linearity Error    : 0.0162 V (0.40% FSR)
+  - Max Hysteresis Error   : 0.0300 V (0.75% FSR)
+  - R-squared (R^2)        : 0.99984
+  - RMSE                   : 0.0105 V
+
+-----------------------------------------------------------------------------------
+SLIDE 7: Calibration Curve & Hysteresis Analysis (Graphical Insights)
+-----------------------------------------------------------------------------------
+- Plot Highlights:
+  - Subplot 1: True Level vs Output Voltage (Loading vs Unloading hysteresis loop).
+  - Subplot 2: Residual Error Stem Plot demonstrating random scatter bounded within +/- 0.02 V.
+- Discussion on Hysteresis Cause: Sensor diaphragm mechanical relaxation during level reduction.
+
+-----------------------------------------------------------------------------------
+SLIDE 8: Firmware Implementation & Self-Calibration Features
+-----------------------------------------------------------------------------------
+- Arduino Firmware Highlights:
+  - Moving Average Filter (10 samples) to reject liquid surface wave noise.
+  - Live execution of Gaussian calibration correction.
+  - Interactive Serial Commands ('CAL_ZERO', 'CAL_SPAN', 'STATUS') for field technician tuning.
+
+-----------------------------------------------------------------------------------
+SLIDE 9: Conclusion & Industrial Applications
+-----------------------------------------------------------------------------------
+- Key Conclusions:
+  - Gaussian elimination successfully minimized non-linearity error to under 0.5% FSR.
+  - High R^2 score (0.9998) validates the accuracy of the linear calibration model.
+- Applications:
+  - Chemical vessel level control, water treatment tanks, fuel storage monitoring.
+
+-----------------------------------------------------------------------------------
+SLIDE 10: Potential Examiner Viva Questions & Answers
+-----------------------------------------------------------------------------------
+Q1: Why use Gaussian elimination instead of pre-built functions?
+A: Gaussian elimination allows explicit matrix solver control, step-by-step pivoting to prevent numerical instability, and embedded memory optimization suitable for microcontrollers.
+
+Q2: What is the main source of error in ultrasonic level measurement?
+A: Temperature variations changing the speed of sound (~0.17% error per deg C) and surface turbulence/foaming causing ultrasonic wave attenuation.
+
+Q3: How does the 4-20mA current loop provide noise immunity?
+A: Current signals are unaffected by wire resistance or voltage drops over long distance industrial cables, unlike voltage signals.
+===================================================================================
