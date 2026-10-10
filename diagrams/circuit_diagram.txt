@@ -1,100 +1,120 @@
+﻿===================================================================================
+  ULTRASONIC LEVEL TRANSMITTER SYSTEM -- HARDWARE SCHEMATIC & PINOUT
+  Project: Calibration of Ultrasonic Level Transmitter using Arduino UNO
+           and Gauss Elimination Method
+  Course:  B.Tech ICE -- Numerical Methods (Semester 3)
 ===================================================================================
-        ULTRASONIC LEVEL TRANSMITTER SYSTEM — HARDWARE SCHEMATIC & PINOUT
-===================================================================================
-Course: B.Tech Instrumentation & Control Engineering (ICE) — Semester 3 Project
 
-1. ASCII CIRCUIT DIAGRAM
+1. COMPONENT LIST
+=================
+  - Arduino UNO (ATmega328P)
+  - HC-SR04 Ultrasonic Distance Sensor
+  - 5V Single-Channel Relay Module (active-LOW input)
+  - Green LED + 220 ohm resistor
+  - Red   LED + 220 ohm resistor
+  - Water pump (5V or 12V, controlled via relay)
+  - Transparent tank / container (height ~30 cm)
+  - Ruler for reference measurements
+
+2. ASCII CIRCUIT DIAGRAM
 ========================
 
-  +-------------------------------------------------------------------------------+
-  |                                POWER SUPPLY                                   |
-  |     +5V DC Regulated Power Supply       +24V DC Industrial Loop Supply        |
-  +-----------------------+----------------------------------+--------------------+
-                          |                                  |
-                          |                                  |
-            +-------------+-------------+                    |
-            |     ARDUINO UNO / NANO    |                    |
-            |                           |                    |
-            |  [5V]           [GND]     |                    |
-            +---+---------------+-------+                    |
-                |               |                            |
-  +-------------+---------------+-----------------+          |
-  |  ULTRASONIC SENSOR (HC-SR04 / JSN-SR04T)      |          |
-  |  VCC  --------------> 5V Rail                 |          |
-  |  GND  --------------> GND Rail                |          |
-  |  TRIG --------------> Arduino Pin 9 (D9)      |          |
-  |  ECHO --------------> Arduino Pin 8 (D8)      |          |
-  +-----------------------------------------------+          |
-                                                             |
-  +-----------------------------------------------+          |
-  |  LCD DISPLAY 16x2 (I2C BACKPACK PCF8574)      |          |
-  |  VCC  --------------> 5V Rail                 |          |
-  |  GND  --------------> GND Rail                |          |
-  |  SDA  --------------> Arduino Pin A4 (SDA)    |          |
-  |  SCL  --------------> Arduino Pin A5 (SCL)    |          |
-  +-----------------------------------------------+          |
-                                                             |
-  +----------------------------------------------------------+--------------------+
-  |  PWM-TO-4-20mA INDUSTRIAL TRANSMITTER SIGNAL CONDITIONER                       |
-  |                                                                               |
-  |  Arduino PWM Pin 3 ---> R1 (10k) ---+---> Non-Inverting (+)                   |
-  |                                     |     LM358 Op-Amp Pin 3                  |
-  |                                   C1 (10uF)                                   |
-  |                                     |                                         |
-  |                                    GND                                        |
-  |                                                                               |
-  |  LM358 Pin 1 (Out) ---> R2 (1k) ---> Base of BC547 NPN Transistor           |
-  |                                       Collector ---> 24V Loop Power (+)      |
-  |                                       Emitter   ---> Inverting (-) LM358 &   |
-  |                                                      R_sense (250 ohm 0.1%)   |
-  |                                                      |                        |
-  |                                                     GND                       |
-  |                                                                               |
-  |  Transmitter Output Terminals:                                                |
-  |     - 1.0V to 5.0V Voltage Output Across R_sense                              |
-  |     - 4.0mA to 20.0mA Current Loop Output (Simulated/Industrial Receiver)     |
-  +-------------------------------------------------------------------------------+
+  +5V ──────────────────────────────────────────────────┐
+                                                        │
+  +─────────────────────────────+                       │
+  │      ARDUINO UNO            │                       │
+  │                             │                       │
+  │  D9  ──────────────────────►│TRIG  ┐                │
+  │  D8  ◄────────────────────── ECHO  │ HC-SR04        │
+  │  5V  ──────────────────────► VCC   │                │
+  │  GND ──────────────────────► GND  ─┘                │
+  │                             │                       │
+  │  D7  ──────────────────────►│IN    ┐                │
+  │  5V  ──────────────────────► VCC   │ Relay Module   │
+  │  GND ──────────────────────► GND   │                │
+  │                             │ COM──►── Pump (+) ────┤
+  │                             │ NO ─┘   Pump (-) ─── GND
+  │                             │                       │
+  │  D6  ── [220R] ──► (+)GREEN LED ──► GND            │
+  │  D5  ── [220R] ──► (+)RED   LED ──► GND            │
+  │                             │                       │
+  +─────────────────────────────+                       │
+                                                        │
+  (5V rail from Arduino)   ─────────────────────────────┘
 
+  Tank cross-section:
+  ┌──────────────────┐   <- HC-SR04 sensor face (top, mounted pointing down)
+  │  ↕ distance (d)  │
+  │ ~~~~~~~~~~~~~~~~ │   <- Water surface
+  │   WATER          │
+  │                  │   Level = TANK_HEIGHT - distance
+  └──────────────────┘   <- Tank bottom (Level = 0)
 
-2. PINOUT & WIRING MATRIX TABLE
-===============================
+3. PINOUT TABLE
+===============
 
-+-----------------------+---------------------+-------------------+------------------------------------------+
-| Source Component      | Pin Label           | Arduino / Circuit | Function / Signal Description            |
-+-----------------------+---------------------+-------------------+------------------------------------------+
-| HC-SR04 / JSN-SR04T   | VCC                 | 5V                | +5V DC Sensor Power                      |
-|                       | GND                 | GND               | Common Ground                            |
-|                       | TRIG                | Digital Pin 9     | 10us Ultrasonic Pulse Trigger            |
-|                       | ECHO                | Digital Pin 8     | Echo Time-of-Flight Return Pulse         |
-+-----------------------+---------------------+-------------------+------------------------------------------+
-| LCD 16x2 (I2C)        | VCC                 | 5V                | +5V DC Backlight & Logic Power           |
-|                       | GND                 | GND               | Common Ground                            |
-|                       | SDA                 | Analog Pin A4     | I2C Data Line (Address 0x27 or 0x3F)     |
-|                       | SCL                 | Analog Pin A5     | I2C Clock Line                           |
-+-----------------------+---------------------+-------------------+------------------------------------------+
-| PWM-to-4-20mA Module  | PWM IN              | Digital Pin 3     | 490 Hz Timer PWM Signal (0-100% duty)    |
-|                       | GND                 | GND               | Common Signal Ground                     |
-|                       | LOOP + (24V)        | +24V Supply       | Industrial 24V DC Loop Current Supply    |
-|                       | LOOP - (Output)     | Current Loop Output 4-20 mA Output to PLC / Receiver Indicator |
-+-----------------------+---------------------+-------------------+------------------------------------------+
-| LM35 (Optional Temp)  | VOUT                | Analog Pin A0     | Temperature Compensation (10 mV / deg C) |
-+-----------------------+---------------------+-------------------+------------------------------------------+
++───────────────────┬──────────────┬────────────────────────────────────────+
+│ Component         │ Pin / Signal │ Arduino Pin  / Notes                   │
++───────────────────┼──────────────┼────────────────────────────────────────+
+│ HC-SR04           │ TRIG         │ Digital Pin 9  (OUTPUT)                │
+│                   │ ECHO         │ Digital Pin 8  (INPUT)                 │
+│                   │ VCC          │ 5V rail                                │
+│                   │ GND          │ GND                                    │
++───────────────────┼──────────────┼────────────────────────────────────────+
+│ Relay Module      │ IN           │ Digital Pin 7  (OUTPUT, active-LOW)    │
+│ (Water Pump)      │ VCC          │ 5V rail                                │
+│                   │ GND          │ GND                                    │
+│                   │ COM          │ Pump +ve terminal                      │
+│                   │ NO (Norm.Open│ Power supply +ve for pump              │
++───────────────────┼──────────────┼────────────────────────────────────────+
+│ Green LED         │ Anode (+)    │ Digital Pin 6  via 220 ohm resistor    │
+│ (Normal / LOW)    │ Cathode (-)  │ GND                                    │
++───────────────────┼──────────────┼────────────────────────────────────────+
+│ Red LED           │ Anode (+)    │ Digital Pin 5  via 220 ohm resistor    │
+│ (HIGH / Pump ON)  │ Cathode (-)  │ GND                                    │
++───────────────────┴──────────────┴────────────────────────────────────────+
 
+4. SIGNAL FLOW & WORKING PRINCIPLE
+====================================
 
-3. HARDWARE WORKING PRINCIPLE & SIGNAL PATH
-===========================================
-1. Ultrasonic Measurement:
-   Arduino sends a 10 microsecond HIGH pulse to HC-SR04 TRIG pin. The sensor emits an 8-cycle 40 kHz 
-   ultrasonic burst. The ECHO pin goes HIGH for a duration proportional to the distance traveled.
-   Distance d = (Time * v_sound) / 2.
-   Liquid Level L = Vessel_Height (100cm) - d.
+Step 1 — Ultrasonic Measurement:
+  Arduino sends a 10 µs HIGH pulse to HC-SR04 TRIG (Pin 9).
+  The sensor emits an 8-cycle 40 kHz ultrasonic burst.
+  ECHO pin goes HIGH for a duration proportional to round-trip time.
+  Distance = (echo_duration_µs × 0.03435) cm  [at 25°C]
+  Level    = TANK_HEIGHT_CM - distance
 
-2. Software Calibration:
-   The raw measured level is passed through a moving average noise filter and transformed via the calibrated 
-   Gaussian linear equation: V_out = (0.03964 * Level) + 1.02182.
+Step 2 — Moving Median Filter (N=7):
+  A ring buffer of 7 distance readings is maintained.
+  The median of the 7 values is used to reject spike noise.
+  This is more robust than moving average for outlier rejection.
 
-3. Industrial Transmitter Signal Conditioning:
-   Arduino outputs a PWM duty cycle on Pin 3 corresponding to V_out. A 2nd order RC low-pass filter converts 
-   PWM to a smooth DC voltage. An LM358 operational amplifier in a constant current feedback loop drives a 
-   transistor to generate a standard 4 to 20 mA industrial current loop.
+Step 3 — Gauss Elimination Calibration:
+  Calibrated Level = COEFF_A0 + COEFF_A1 × raw_distance
+  Coefficients are derived offline by MATLAB or Python and
+  uploaded into the firmware constants COEFF_A0, COEFF_A1.
+
+Step 4 — Pump Hysteresis Control (via Relay):
+  if  level >= 22 cm  →  Relay ON  (Pin 7 = LOW)   → Pump runs
+  if  level <=  8 cm  →  Relay OFF (Pin 7 = HIGH)  → Pump stops
+  Hysteresis band prevents rapid on/off cycling.
+
+Step 5 — LED Indicators:
+  Pump OFF (normal)  → GREEN LED ON, RED LED OFF
+  Pump ON  (HIGH)    → RED LED ON,   GREEN LED OFF
+
+Step 6 — Serial Telemetry (115200 baud):
+  Format:  DIST,<cm>,LEVEL,<cm>,PCT,<%>,RELAY,<0|1>
+  Example: DIST,18.72,LEVEL,13.44,PCT,44.8,RELAY,0
+  Read by: MATLAB HMI (level_calibration_gauss.m)
+           Python bridge (serial_bridge.py) → Web dashboard
+
+5. NOTES
+=========
+  - Relay Module: Most common 5V relay modules have active-LOW inputs.
+    The firmware sets Pin 7 LOW to energise and HIGH to de-energise.
+    Verify your module's input logic before connecting.
+  - HC-SR04 range: 2 cm to 400 cm. Mount sensor 2–3 cm above max water level.
+  - Update TANK_HEIGHT_CM in the .ino file to match your actual tank height.
+  - After collecting calibration data, update COEFF_A0 and COEFF_A1.
 ===================================================================================

@@ -1,0 +1,52 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# MATLAB
+*.asv
+*.m~
+slprj/
+*.slxc
+octave-workspace
+
+# Arduino
+*.hex
+*.elf
+*.bin
+*.map
+build/
+
+# Reports (generated files — keep source only)
+reports/*.pdf
+reports/*.docx
+reports/*.png
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Node (if any)
+node_modules/
+
+# Logs
+*.log

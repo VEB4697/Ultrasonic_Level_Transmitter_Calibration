@@ -1,0 +1,469 @@
+﻿/* ================================================================
+   style.css — Ultrasonic Level Transmitter HMI Dashboard
+   Dark Glassmorphism Design | B.Tech ICE Semester 3 Project
+   ================================================================ */
+
+/* ---------- Reset & Base ---------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-base:    #060b14;
+  --bg-card:    rgba(10, 18, 32, 0.82);
+  --bg-glass:   rgba(255, 255, 255, 0.04);
+  --accent:     #00d4ff;
+  --accent2:    #7c4fff;
+  --green:      #00e676;
+  --red:        #ff4757;
+  --warn:       #ffb300;
+  --text-main:  #e8f0fe;
+  --text-dim:   #7a8aa0;
+  --border:     rgba(0, 212, 255, 0.12);
+  --glow:       0 0 20px rgba(0, 212, 255, 0.25);
+  --card-radius: 16px;
+  --font-mono:  'JetBrains Mono', monospace;
+  --font-main:  'Outfit', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg-base);
+  color: var(--text-main);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(0, 212, 255, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 90%, rgba(124, 79, 255, 0.06) 0%, transparent 60%);
+}
+
+/* ---------- Header ---------------------------------------------- */
+.hmi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: rgba(6, 11, 20, 0.95);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left { display: flex; align-items: center; gap: 14px; }
+
+.logo-icon svg { width: 42px; height: 42px; filter: drop-shadow(0 0 8px #00d4ff88); }
+
+.header-text h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+.header-text p { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+
+.header-right { display: flex; align-items: center; gap: 20px; }
+
+.conn-badge {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  background: var(--bg-glass);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.conn-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #555;
+  transition: background 0.4s;
+}
+.conn-badge.connected .conn-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.conn-badge.error     .conn-dot { background: var(--red);   box-shadow: 0 0 8px var(--red); }
+
+.header-time {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--accent);
+  min-width: 70px;
+}
+
+/* ---------- Main Grid ------------------------------------------- */
+.hmi-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 16px;
+  padding: 16px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ---------- Cards ----------------------------------------------- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  backdrop-filter: blur(14px);
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.3s;
+}
+.card:hover { box-shadow: var(--glow); }
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,212,255,0.03) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.card-title {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Grid positions */
+.card-tank    { grid-column: 1; grid-row: 1 / 3; }
+.card-metrics { grid-column: 2 / 4; grid-row: 1; }
+.card-trend   { grid-column: 2 / 4; grid-row: 2; min-height: 240px; }
+.card-calib   { grid-column: 1 / 3; grid-row: 3; }
+.card-curve   { grid-column: 3; grid-row: 3; min-height: 280px; }
+.card-log     { grid-column: 1 / 4; grid-row: 4; }
+
+/* ---------- Tank Visualiser ------------------------------------- */
+.tank-wrap { display: flex; justify-content: center; align-items: center; padding: 8px 0; }
+
+.tank-container {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.tank-body {
+  width: 80px;
+  height: 220px;
+  border: 2px solid var(--accent);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  background: rgba(0,0,0,0.6);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 16px rgba(0,212,255,0.2), inset 0 0 12px rgba(0,0,0,0.5);
+}
+
+.water-fill {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 0%;
+  background: linear-gradient(180deg, rgba(0,180,255,0.7) 0%, rgba(0,80,200,0.85) 100%);
+  transition: height 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.water-surface {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: rgba(180, 240, 255, 0.6);
+  border-radius: 3px;
+}
+
+.wave-overlay {
+  position: absolute;
+  bottom: 0; left: -50%;
+  width: 200%;
+  height: 30px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20'%3E%3Cpath d='M0,10 C30,0 70,20 100,10 C130,0 170,20 200,10 L200,20 L0,20 Z' fill='rgba(0,180,255,0.3)'/%3E%3C/svg%3E") repeat-x;
+  background-size: 50% 100%;
+  animation: waveMove 3s linear infinite;
+  opacity: 0.7;
+}
+@keyframes waveMove { from { transform: translateX(0); } to { transform: translateX(50%); } }
+
+.tank-level-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(0,0,0,0.8);
+  z-index: 2;
+}
+
+.tank-ruler {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 220px;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+.threshold-high,
+.threshold-low {
+  position: absolute;
+  left: 0; right: 30px;
+  height: 1.5px;
+  pointer-events: none;
+}
+.threshold-high { background: var(--red);   opacity: 0.7; bottom: calc(220px * 22/30); }
+.threshold-low  { background: var(--green); opacity: 0.7; bottom: calc(220px * 8/30); }
+
+.tank-meta {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.meta-item { text-align: center; }
+.meta-label { display: block; font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.meta-val   { display: block; font-size: 0.8rem;  font-weight: 600; margin-top: 2px; }
+.meta-val.warn { color: var(--red); }
+.meta-val.ok   { color: var(--green); }
+
+/* ---------- Metrics Grid ---------------------------------------- */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.metric-tile {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  transition: transform 0.2s, border-color 0.3s;
+}
+.metric-tile:hover { transform: translateY(-2px); border-color: rgba(0,212,255,0.3); }
+
+.metric-icon { font-size: 1.4rem; margin-bottom: 8px; }
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  transition: color 0.3s;
+}
+.metric-unit  { font-size: 0.7rem; color: var(--text-dim); margin-top: 2px; }
+.metric-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 6px; }
+
+.pump-tile.pump-on   { border-color: rgba(255,71,87,0.4); background: rgba(255,71,87,0.06); }
+.pump-tile.pump-on .metric-value { color: var(--red); }
+.pump-tile .pump-icon { animation: none; }
+.pump-tile.pump-on .pump-icon { animation: pumpPulse 1s infinite; }
+@keyframes pumpPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.15);} }
+
+/* LED Indicators */
+.led-row {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.led-item { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--text-dim); }
+.led {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid #333;
+  background: #1a1a1a;
+  transition: box-shadow 0.3s, background 0.3s;
+}
+.led.green.on { background: var(--green); border-color: var(--green); box-shadow: 0 0 10px var(--green), 0 0 20px rgba(0,230,118,0.4); }
+.led.red.on   { background: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px var(--red),   0 0 20px rgba(255,71,87,0.4); }
+.led.blue.on  { background: var(--accent);border-color: var(--accent); box-shadow: 0 0 10px var(--accent),0 0 20px rgba(0,212,255,0.4); }
+
+/* ---------- Charts ---------------------------------------------- */
+canvas { width: 100% !important; }
+
+/* ---------- Calibration Panel ----------------------------------- */
+.calib-body { display: flex; flex-direction: column; gap: 14px; }
+
+.calib-inputs {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.input-group { display: flex; flex-direction: column; gap: 4px; }
+.input-group label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.input-group input {
+  width: 130px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input-group input:focus { border-color: var(--accent); }
+.input-group input::placeholder { color: var(--text-dim); }
+
+/* Buttons */
+.btn {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn-add  { background: linear-gradient(135deg, #1a6640, #0d4a2e); color: #fff; margin-top: 18px; }
+.btn-live { background: linear-gradient(135deg, #1a3a66, #0d2a4e); color: #fff; margin-top: 18px; }
+.btn-run  { background: linear-gradient(135deg, var(--accent2), #4a1f99); color: #fff; width: 100%; padding: 12px; font-size: 0.85rem; }
+.btn-sm   { padding: 5px 12px; font-size: 0.72rem; background: rgba(255,255,255,0.08); color: var(--text-main); border-radius: 6px; }
+.btn-icon { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.9rem; padding: 0 4px; }
+.btn-icon:hover { color: var(--red); }
+
+/* Calibration Table */
+.cal-table-wrap {
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.cal-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.cal-table thead { position: sticky; top: 0; background: rgba(10,18,32,0.95); }
+.cal-table th {
+  padding: 7px 10px;
+  text-align: left;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+}
+.cal-table td {
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  color: var(--text-main);
+}
+.cal-table tr:hover td { background: rgba(255,255,255,0.03); }
+.btn-del { background:none; border:none; color:var(--red); cursor:pointer; font-size:0.85rem; padding:0 4px; }
+
+/* Results */
+.calib-results {
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 10px;
+  padding: 14px;
+}
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+.result-row:last-child { border-bottom: none; }
+.result-row span { color: var(--text-dim); }
+.result-row code {
+  font-family: var(--font-mono);
+  color: var(--green);
+  background: rgba(0,230,118,0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+}
+.copy-hint {
+  margin-top: 10px;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+.copy-hint code { background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 3px; }
+
+/* ---------- Serial Log ------------------------------------------ */
+.log-body {
+  height: 90px;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--green);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.log-err { color: var(--red); }
+
+.ws-config {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+.ws-config input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-main);
+  padding: 3px 5px;
+  font-family: var(--font-mono);
+}
+
+/* ---------- Footer ---------------------------------------------- */
+.hmi-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 8px;
+}
+
+/* ---------- Responsive ------------------------------------------ */
+@media (max-width: 1024px) {
+  .hmi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .card-tank    { grid-column: 1; grid-row: 1 / 3; }
+  .card-metrics { grid-column: 2; grid-row: 1; }
+  .card-trend   { grid-column: 1 / 3; grid-row: 3; }
+  .card-calib   { grid-column: 1 / 3; grid-row: 4; }
+  .card-curve   { grid-column: 1 / 3; grid-row: 5; }
+  .card-log     { grid-column: 1 / 3; grid-row: 6; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .hmi-grid { grid-template-columns: 1fr; padding: 10px; }
+  .card-tank  { grid-column: 1; grid-row: auto; }
+  .card-metrics, .card-trend, .card-calib, .card-curve, .card-log { grid-column: 1; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .hmi-header { flex-direction: column; gap: 8px; }
+}
